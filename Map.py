@@ -66,101 +66,14 @@ class Map:
         print("")
 
 
-    #A MODIFIER EN FONCTION DES NOUVELLES CONTRAINTES CAR PLUS SIMPLE
     def verif(self):
-        #Vérification des colonnes
-        for i in range(0,9):
-            liste1 = [1,2,3,4,5,6,7,8,9]
-            liste2 = []
-            for elem in self.assignment:
-               liste2.append(elem[i][0])
-            liste2.sort()
-            if liste1!=liste2:
-                return False
-
-        #Vérification des lignes
-        for column in self.assignment:
-            liste1 = [1,2,3,4,5,6,7,8,9]
-            liste2 = []
-            for elem in column:
-                liste2.append(elem[0])
-            liste2.sort()
-            if liste1!=liste2:
-                return False
-
-        #Vérification des cases
-        liste1 = [1,2,3,4,5,6,7,8,9]
-        liste2 = []
-        for i in range(0,3):
-            for j in range(0,3):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
-
-        liste2 = []
-        for i in range(0,3):
-            for j in range(3,6):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
-
-        liste2 = []
-        for i in range(0,3):
-            for j in range(6,9):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
-
-        liste2 = []
-        for i in range(3,6):
-            for j in range(0,3):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
-
-        liste2 = []
-        for i in range(3,6):
-            for j in range(3,6):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
-
-        liste2 = []
-        for i in range(3,6):
-            for j in range(6,9):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
-
-        liste2 = []
-        for i in range(6,9):
-            for j in range(0,3):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
-
-        liste2 = []
-        for i in range(6,9):
-            for j in range(3,6):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
-
-        liste2 = []
-        for i in range(6,9):
-            for j in range(6,9):
-                liste2.append(self.assignment[i][j][0])
-        liste2.sort()
-        if liste1!=liste2:
-            return False
+        for x in range(0,9):
+            for y in range(0,9):
+                key = "[" + str(x) + "," + str(y) + "]"
+                list_constraint = self.constraint[key]
+                for elem in list_constraint:
+                    if self.assignment[elem[0]][elem[1]][0] == self.assignment[x][y][0]:
+                        return False
         
         return True
 
@@ -196,12 +109,24 @@ class Map:
     def select_unasigned_variable(self):
         #retourne les coordonnées d'une case vide
         #c'est dans cette partie que seront implémentés certains des 4 algorithmes
+
+        """#Algorithme MRV
         #selectedBox = [coord, legalValuesNumber]
         selectedBox = [[0,0], 10]
         for x in range(0,9):
             for y in range(0,9):
                 if self.assignment[x][y][0] == 0:
                     if self.assignment[x][y][1] < selectedBox[1]:
+                        selectedBox = [[x,y], self.assignment[x][y][1]]
+        return selectedBox[0][0], selectedBox[0][1]"""
+        
+        #Algorithme degree-heuristic
+        #selectedBox = [coord, legalValuesNumber]
+        selectedBox = [[0,0], 0]
+        for x in range(0,9):
+            for y in range(0,9):
+                if self.assignment[x][y][0] == 0:
+                    if self.assignment[x][y][1] > selectedBox[1]:
                         selectedBox = [[x,y], self.assignment[x][y][1]]
         return selectedBox[0][0], selectedBox[0][1]
 
@@ -228,7 +153,6 @@ class Map:
                         values.remove(self.assignment[elem[0]][elem[1]][0])
                 self.assignment[x][y][1] = len(values)
                 self.assignment[x][y][2] = values
-        print(self.assignment)
 
     
     
