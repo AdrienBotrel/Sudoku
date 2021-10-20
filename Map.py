@@ -86,13 +86,14 @@ class Map:
         if self.test_complete(): return self.assignment
         x, y = self.select_unasigned_variable()
 
+        
         for value in self.domain:
             if self.test_consistant(x, y, value):
-                self.assignment[x][y][0] = value
+                self.add(x,y,value)
                 result = self.recursive_backtracking()
                 if result != False:
                     return result
-                self.assignment[x][y][0] = 0
+                self.remove(x,y,value)
         return False
         
     #Vérifie si le sudoku est complet en analysant la valeur de chaque case
@@ -110,7 +111,7 @@ class Map:
         #retourne les coordonnées d'une case vide
         #c'est dans cette partie que seront implémentés certains des 4 algorithmes
 
-        """#Algorithme MRV
+        #Algorithme MRV
         #selectedBox = [coord, legalValuesNumber]
         selectedBox = [[0,0], 10]
         for x in range(0,9):
@@ -118,20 +119,23 @@ class Map:
                 if self.assignment[x][y][0] == 0:
                     if self.assignment[x][y][1] < selectedBox[1]:
                         selectedBox = [[x,y], self.assignment[x][y][1]]
-        return selectedBox[0][0], selectedBox[0][1]"""
+        return selectedBox[0][0], selectedBox[0][1]
         
-        #Algorithme degree-heuristic
+        """#Algorithme degree-heuristic
         #selectedBox = [coord, legalValuesNumber]
-        selectedBox = [[0,0], 0]
+        selectedBox = [[10,10], 0]
         for x in range(0,9):
             for y in range(0,9):
                 if self.assignment[x][y][0] == 0:
                     if self.assignment[x][y][1] > selectedBox[1]:
                         selectedBox = [[x,y], self.assignment[x][y][1]]
-        return selectedBox[0][0], selectedBox[0][1]
+        return selectedBox[0][0], selectedBox[0][1]"""
 
 
     def test_consistant(self, x, y, value):
+        if (x==10 and y ==10):
+            return False
+
         key = "[" + str(x) + "," + str(y) + "]"
         list_constraint = self.constraint[key]
 
@@ -154,8 +158,29 @@ class Map:
                 self.assignment[x][y][1] = len(values)
                 self.assignment[x][y][2] = values
 
+
+    def add(self, x, y, value):
+        self.assignment[x][y][0] = value
+
+        key = "[" + str(x) + "," + str(y) + "]"
+        list_constraint = self.constraint[key]
+
+        for elem in list_constraint:
+            if value in self.assignment[elem[0]][elem[1]][2]:
+                self.assignment[elem[0]][elem[1]][2].remove(value)
+                self.assignment[elem[0]][elem[1]][1] -= 1
     
-    
+
+    def remove(self, x, y, value):
+        self.assignment[x][y][0] = 0
+
+        key = "[" + str(x) + "," + str(y) + "]"
+        list_constraint = self.constraint[key]
+
+        for elem in list_constraint:
+            if value not in self.assignment[elem[0]][elem[1]][2]:
+                self.assignment[elem[0]][elem[1]][2].append(value)
+                self.assignment[elem[0]][elem[1]][1] += 1
 
 
 if __name__ == "__main__":    
@@ -313,6 +338,7 @@ if __name__ == "__main__":
     m.draw_map()
     test = m.verif()
     print(test)
+    print(m.assignment)
 
 
 
