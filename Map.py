@@ -1,13 +1,38 @@
 from random import randrange
 import copy
+import time
 
 class Map:
     def __init__(self):
-        # la carte est sous forme de 5x5 cases, chacune est un vecteur [a,b,c] tel que a == 1 si contient Aspirateur ,b == 1 si saleté ,c == 1 si bijou 
-        self.grid = [[[0] for i in range(9)] for j in range(9)]
-        self.assignment = [[[0] for i in range(9)] for j in range(9)]
-        self.domaine = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        
+        self.variables = [[[0] for i in range(9)] for j in range(9)]
+        self.domain = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        self.constraint = {}
+        
+        self.assignment = [[[0, 0, []] for i in range(9)] for j in range(9)]
 
+    
+    def create_constraint(self):
+        for x in range(0,9):
+            for y in range(0,9):
+                list_constraint = []
+                #récupération des contraintes binaires
+                for a in range(0,len(self.variables[0])):
+                    if y!=a: list_constraint.append([x,a])
+                    if x!=a: list_constraint.append([a,y])
+                qx = int(x/3)
+                qy = int(y/3)
+                for i in range(0,3):
+                    for j in range(0,3):
+                        list_constraint.append([qx*3+i, qy*3+j])
+                
+                list_constraint.remove([x,y])
+                new_list = []
+                for l in list_constraint:
+                    if l not in new_list: 
+                        new_list.append(l)
+                self.constraint["["+str(x)+","+str(y)+"]"] = new_list
+        
 
     def draw_map(self):
         c = 0
@@ -41,6 +66,7 @@ class Map:
         print("")
 
 
+    #A MODIFIER EN FONCTION DES NOUVELLES CONTRAINTES CAR PLUS SIMPLE
     def verif(self):
         #Vérification des colonnes
         for i in range(0,9):
@@ -140,29 +166,26 @@ class Map:
 
 
     def backtracking_search(self):
-        print("backtracking_search")
-        assignment = self.assignment
-        return self.recursive_backtracking(assignment)
+        return self.recursive_backtracking()
 
 
-    def recursive_backtracking(self, assignment):
-        print("recursive_search")
-        if self.test_complete(assignment): return assignment
-        x, y = self.select_unasigned_variable(assignment)
+    def recursive_backtracking(self):
+        if self.test_complete(): return self.assignment
+        x, y = self.select_unasigned_variable()
 
-        for value in self.domaine:
-            if self.test_consistant(assignment, x, y, value):
-                assignment[x][y][0] = value
-                result = self.recursive_backtracking(assignment)
+        for value in self.domain:
+            if self.test_consistant(x, y, value):
+                self.assignment[x][y][0] = value
+                result = self.recursive_backtracking()
                 if result != False:
                     return result
-                assignment[x][y][0] = 0
+                self.assignment[x][y][0] = 0
         return False
         
-
-    def test_complete(self, assignment):
+    #Vérifie si le sudoku est complet en analysant la valeur de chaque case
+    def test_complete(self):
         complete = True
-        for line in assignment:
+        for line in self.assignment:
             for box in line:
                 if box[0] == 0:
                     complete = False
@@ -170,46 +193,43 @@ class Map:
         return complete
 
 
-    def select_unasigned_variable(self, assignment):
+    def select_unasigned_variable(self):
         #retourne les coordonnées d'une case vide
         #c'est dans cette partie que seront implémentés certains des 4 algorithmes
-        return 0, 0
+        #selectedBox = [coord, legalValuesNumber]
+        selectedBox = [[0,0], 10]
+        for x in range(0,9):
+            for y in range(0,9):
+                if self.assignment[x][y][0] == 0:
+                    if self.assignment[x][y][1] < selectedBox[1]:
+                        selectedBox = [[x,y], self.assignment[x][y][1]]
+        return selectedBox[0][0], selectedBox[0][1]
 
 
-    def test_consistant(self, assignment, x, y, value):
-        #test si la valeur est déjà présente dans la ligne ou dans la colonne
-        for a in range(0,len(self.grid[0])):
-            if ((self.grid[x][a][0] == value and a!=y) or (self.grid[a][y][0] == value and a != x)):
-                return False
+    def test_consistant(self, x, y, value):
+        key = "[" + str(x) + "," + str(y) + "]"
+        list_constraint = self.constraint[key]
 
-        #test si la valeur est déjà présente dans le bloc de cases
-        col = x%3
-        line = y%3
-        combinations = []
-        if col == 0 and line == 0:
-            combinations.extend([[x+1,y+1],[x+1,y+2],[x+2,y+1],[x+2,y+2]])
-        elif col == 0 and line == 1:
-            combinations.extend([[x+1,y+1],[x+1,y-1],[x+2,y+1],[x+2,y-1]])
-        elif col == 0 and line == 2:
-            combinations.extend([[x+1,y-1],[x+1,y-2],[x+2,y-1],[x+2,y-2]])
-        elif col == 1 and line == 0:
-            combinations.extend([[x+1,y+1],[x+1,y+2],[x-1,y+1],[x-1,y+2]])
-        elif col == 1 and line == 1:
-            combinations.extend([[x+1,y+1],[x+1,y-1],[x-1,y+1],[x-1,y-1]])
-        elif col == 1 and line == 2:
-            combinations.extend([[x+1,y-1],[x+1,y-2],[x-1,y-1],[x-1,y-2]])
-        elif col == 2 and line == 0:
-            combinations.extend([[x-1,y+1],[x-1,y+2],[x-2,y+1],[x-2,y+2]])
-        elif col == 2 and line == 1:
-            combinations.extend([[x-1,y+1],[x-1,y-1],[x-2,y+1],[x-2,y-1]])
-        elif col == 2 and line == 2:
-            combinations.extend([[x-1,y-1],[x-1,y-2],[x-2,y-1],[x-2,y-2]])
-        
-        for [a, b] in combinations:
-            if self.grid[a][b][0] == value:
+        for elem in list_constraint:
+            if self.assignment[elem[0]][elem[1]][0] == value:
                 return False
         return True
-            
+
+
+    def update_legal_variable(self):
+        for x in range (0,9):
+            for y in range (0,9):
+                values = copy.copy(self.domain)
+
+                key = "[" + str(x) + "," + str(y) + "]"
+                list_constraint = self.constraint[key]
+                for elem in list_constraint:
+                    if self.assignment[elem[0]][elem[1]][0] in values:
+                        values.remove(self.assignment[elem[0]][elem[1]][0])
+                self.assignment[x][y][1] = len(values)
+                self.assignment[x][y][2] = values
+        print(self.assignment)
+
     
     
 
@@ -361,15 +381,15 @@ if __name__ == "__main__":
     m.assignment[8][8][0] = 8
    
 
-
+    m.create_constraint()
+    m.update_legal_variable()
     m.draw_map()
     m.grid = m.assignment
     m.backtracking_search()
-
+    m.draw_map()
     test = m.verif()
     print(test)
 
-    print(9%3)
 
 
     
