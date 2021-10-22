@@ -2,6 +2,11 @@ from random import randrange
 import copy
 import time
 
+from PySide6.QtWidgets import QApplication, QMainWindow, QGridLayout, QLineEdit, QVBoxLayout, QWidget, QPushButton, QLabel, QWidgetItem, QColorDialog
+from PySide6.QtGui import QPalette, QColor, QScreen, QGuiApplication, QFont
+import PySide6
+import sys
+
 class Map:
     def __init__(self):
         
@@ -183,14 +188,114 @@ class Map:
                 self.assignment[elem[0]][elem[1]][1] += 1
 
 
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Sudoku")
+        
+        verticalLayout = QVBoxLayout()
+        verticalLayout.setAlignment(PySide6.QtCore.Qt.AlignVCenter)
+
+        text = QLabel()
+        text.setText("Rentrez votre grille de sudoku puis appuyez sur \"Valider\"")
+        font = text.font()
+        font.setPointSize(30)
+        text.setFont(font)
+        text.setAlignment(PySide6.QtCore.Qt.AlignHCenter)
+        verticalLayout.addWidget(text)
+
+
+        self.layout = QGridLayout()
+        for x in range(0,9):
+            for y in range(0,9):
+                box = QLineEdit()
+                box.setMaxLength(1)
+                font = box.font()
+                font.setPointSize(30)
+                box.setFont(font)
+                box.setMaximumSize(40,40)
+                box.setAlignment(PySide6.QtCore.Qt.AlignHCenter)
+                self.layout.addWidget(box, x, y)
+
+        self.layout.setAlignment(PySide6.QtCore.Qt.AlignHCenter)
+        verticalLayout.addLayout(self.layout)
+
+
+        validate_button = QPushButton("valider")
+        validate_button.clicked.connect(self.validate_button_clicked)
+        font = validate_button.font()
+        font.setPointSize(30)
+        validate_button.setFont(font)
+
+        verticalLayout.addWidget(validate_button)
+
+        clear_button = QPushButton("effacer")
+        clear_button.clicked.connect(self.clear_button_clicked)
+        font = clear_button.font()
+        font.setPointSize(30)
+        clear_button.setFont(font)
+
+        verticalLayout.addWidget(clear_button)
+
+
+        widget = QWidget()
+        widget.setLayout(verticalLayout)
+        self.setCentralWidget(widget)
+        
+
+        
+
+    def validate_button_clicked(self):
+        layout = self.layout
+        m = Map()
+        m.draw_map()
+
+        for x in range(0,9):
+            for y in range(0,9):
+                box = layout.itemAtPosition(x,y).widget()
+                if box.text() == "":
+                    m.assignment[x][y][0] = 0
+                else:
+                    box.setStyleSheet("color: red;")
+                    m.assignment[x][y][0] = int(box.text())
+        m.draw_map()
+        m.create_constraint()
+        m.update_legal_variable()
+        m.grid = m.assignment
+        if(m.backtracking_search()!=False):
+            for x in range(0,9):
+                for y in range(0,9):
+                    box = layout.itemAtPosition(x,y).widget()
+                    box.setText(str(m.assignment[x][y][0]))
+
+        m.draw_map()
+
+    def clear_button_clicked(self):
+        layout = self.layout
+
+        for x in range(0,9):
+            for y in range(0,9):
+                box = layout.itemAtPosition(x,y).widget()
+                box.setText("")
+                box.setStyleSheet("color: black;")
+
+        m.draw_map()
+                
+
+
+
+
 if __name__ == "__main__":    
-    m = Map()
+    """m = Map()
     #for liste in m.grid:
     #    for elem in liste:
     #        elem[0] = randrange(0,10)
     #m.draw_map()
 
-    """#Solution qui marche
+    #Solution qui marche
     m.assignment[0][0][0] = 9
     m.assignment[0][1][0] = 3
     m.assignment[0][2][0] = 1
@@ -279,7 +384,7 @@ if __name__ == "__main__":
     m.assignment[8][5][0] = 1
     m.assignment[8][6][0] = 5
     m.assignment[8][7][0] = 9
-    m.assignment[8][8][0] = 8"""
+    m.assignment[8][8][0] = 8
 
 
     #Solution à tester
@@ -338,7 +443,15 @@ if __name__ == "__main__":
     m.draw_map()
     test = m.verif()
     print(test)
-    print(m.assignment)
+    print(m.assignment)"""
+
+
+    app = QApplication(sys.argv)
+
+    window = MainWindow()
+    window.showMaximized()
+
+    app.exec_()
 
 
 
