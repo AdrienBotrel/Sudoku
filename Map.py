@@ -8,28 +8,31 @@ import PySide6
 import sys
 
 class Map:
-    def __init__(self):
-        
-        self.variables = [[[0] for i in range(9)] for j in range(9)]
-        self.domain = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    def __init__(self, length):
+        self.length = length
+
+        self.variables = [[[0] for i in range(length*length)] for j in range(length*length)]
+        self.domain = []
+        for l in range(1, length*length + 1):
+            self.domain.append(l)
         self.constraint = {}
         
-        self.assignment = [[[0, 0, []] for i in range(9)] for j in range(9)]
+        self.assignment = [[[0, 0, []] for i in range(length*length)] for j in range(length*length)]
 
     
     def create_constraint(self):
-        for x in range(0,9):
-            for y in range(0,9):
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
                 list_constraint = []
                 #récupération des contraintes binaires
                 for a in range(0,len(self.variables[0])):
                     if y!=a: list_constraint.append([x,a])
                     if x!=a: list_constraint.append([a,y])
-                qx = int(x/3)
-                qy = int(y/3)
-                for i in range(0,3):
-                    for j in range(0,3):
-                        list_constraint.append([qx*3+i, qy*3+j])
+                qx = int(x/self.length)
+                qy = int(y/self.length)
+                for i in range(0,self.length):
+                    for j in range(0,self.length):
+                        list_constraint.append([qx*self.length+i, qy*self.length+j])
                 
                 list_constraint.remove([x,y])
                 new_list = []
@@ -41,10 +44,10 @@ class Map:
 
     def draw_map(self):
         c = 0
-        l=3
+        l= self.length
         
         for liste in self.assignment:
-            if(l==3):
+            if(l==self.length):
                 print("  ", end = "")
                 for i in range(0,13):
                     print(" - ", end = '')
@@ -66,14 +69,14 @@ class Map:
             print("")
         
         print("  ", end = "")
-        for i in range(0,13):
+        for i in range(0,self.length*self.length+4):
             print(" - ", end = '')
         print("")
 
 
     def verif(self):
-        for x in range(0,9):
-            for y in range(0,9):
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
                 key = "[" + str(x) + "," + str(y) + "]"
                 list_constraint = self.constraint[key]
                 for elem in list_constraint:
@@ -91,7 +94,6 @@ class Map:
         if self.test_complete(): return self.assignment
         x, y = self.select_unasigned_variable()
 
-        
         for value in self.domain:
             if self.test_consistant(x, y, value):
                 self.add(x,y,value)
@@ -119,8 +121,8 @@ class Map:
         #Algorithme MRV
         #selectedBox = [coord, legalValuesNumber]
         selectedBox = [[0,0], 10]
-        for x in range(0,9):
-            for y in range(0,9):
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
                 if self.assignment[x][y][0] == 0:
                     if self.assignment[x][y][1] < selectedBox[1]:
                         selectedBox = [[x,y], self.assignment[x][y][1]]
@@ -128,9 +130,9 @@ class Map:
         
         """#Algorithme degree-heuristic
         #selectedBox = [coord, legalValuesNumber]
-        selectedBox = [[10,10], 0]
-        for x in range(0,9):
-            for y in range(0,9):
+        selectedBox = [[self.length*self.length+1,self.length*self.length+1], 0]
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
                 if self.assignment[x][y][0] == 0:
                     if self.assignment[x][y][1] > selectedBox[1]:
                         selectedBox = [[x,y], self.assignment[x][y][1]]
@@ -138,7 +140,7 @@ class Map:
 
 
     def test_consistant(self, x, y, value):
-        if (x==10 and y ==10):
+        if (x==self.length*self.length+1 and y==self.length*self.length+1):
             return False
 
         key = "[" + str(x) + "," + str(y) + "]"
@@ -151,8 +153,8 @@ class Map:
 
 
     def update_legal_variable(self):
-        for x in range (0,9):
-            for y in range (0,9):
+        for x in range (0,self.length*self.length):
+            for y in range (0,self.length*self.length):
                 values = copy.copy(self.domain)
 
                 key = "[" + str(x) + "," + str(y) + "]"
@@ -193,7 +195,7 @@ class Map:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
+        self.length = 3
         self.setWindowTitle("Sudoku")
         
         verticalLayout = QVBoxLayout()
@@ -209,8 +211,8 @@ class MainWindow(QMainWindow):
 
 
         self.layout = QGridLayout()
-        for x in range(0,9):
-            for y in range(0,9):
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
                 box = QLineEdit()
                 box.setMaxLength(1)
                 font = box.font()
@@ -246,15 +248,13 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         
 
-        
-
     def validate_button_clicked(self):
         layout = self.layout
-        m = Map()
+        m = Map(self.length)
         m.draw_map()
 
-        for x in range(0,9):
-            for y in range(0,9):
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
                 box = layout.itemAtPosition(x,y).widget()
                 if box.text() == "":
                     m.assignment[x][y][0] = 0
@@ -266,23 +266,23 @@ class MainWindow(QMainWindow):
         m.update_legal_variable()
         m.grid = m.assignment
         if(m.backtracking_search()!=False):
-            for x in range(0,9):
-                for y in range(0,9):
+            for x in range(0,self.length*self.length):
+                for y in range(0,self.length*self.length):
                     box = layout.itemAtPosition(x,y).widget()
                     box.setText(str(m.assignment[x][y][0]))
 
         m.draw_map()
 
+
     def clear_button_clicked(self):
         layout = self.layout
 
-        for x in range(0,9):
-            for y in range(0,9):
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
                 box = layout.itemAtPosition(x,y).widget()
                 box.setText("")
                 box.setStyleSheet("color: black;")
 
-        m.draw_map()
                 
 
 
