@@ -10,6 +10,7 @@ import sys
 class Map:
     def __init__(self, length):
         self.length = length
+        self.azerty = 0
 
         self.variables = [[[0] for i in range(length*length)] for j in range(length*length)]
         self.domain = []
@@ -61,7 +62,7 @@ class Map:
                     print(" ", end = '')
                 else:
                     print(elem[0], end = '')
-                if (c==3):
+                if (c==self.length):
                     print(" || ", end = '')
                     c=0
                 else:
@@ -93,7 +94,6 @@ class Map:
     def recursive_backtracking(self):
         if self.test_complete(): return self.assignment
         x, y = self.select_unasigned_variable()
-
         for value in self.domain:
             if self.test_consistant(x, y, value):
                 self.add(x,y,value)
@@ -118,25 +118,28 @@ class Map:
         #retourne les coordonnées d'une case vide
         #c'est dans cette partie que seront implémentés certains des 4 algorithmes
 
-        #Algorithme MRV
-        #selectedBox = [coord, legalValuesNumber]
-        selectedBox = [[0,0], 10]
-        for x in range(0,self.length*self.length):
-            for y in range(0,self.length*self.length):
-                if self.assignment[x][y][0] == 0:
-                    if self.assignment[x][y][1] < selectedBox[1]:
-                        selectedBox = [[x,y], self.assignment[x][y][1]]
+        algo = "degree heuristic"
+
+        if algo == "mrv":
+            #Algorithme MRV
+            #selectedBox = [coord, legalValuesNumber]
+            selectedBox = [[0,0], self.length*self.length + 1]
+            for x in range(0,self.length*self.length):
+                for y in range(0,self.length*self.length):
+                    if self.assignment[x][y][0] == 0:
+                        if self.assignment[x][y][1] < selectedBox[1]:
+                            selectedBox = [[x,y], self.assignment[x][y][1]]
+        elif algo == "degree heuristic": 
+            #Algorithme degree-heuristic
+            #selectedBox = [coord, legalValuesNumber]
+            selectedBox = [[self.length*self.length+1,self.length*self.length+1], 0]
+            for x in range(0,self.length*self.length):
+                for y in range(0,self.length*self.length):
+                    if self.assignment[x][y][0] == 0:
+                        key = "[" + str(x) + "," + str(y) + "]"
+                        if len(self.constraint[key]) > selectedBox[1]:
+                            selectedBox = [[x,y], self.assignment[x][y][1]]
         return selectedBox[0][0], selectedBox[0][1]
-        
-        """#Algorithme degree-heuristic
-        #selectedBox = [coord, legalValuesNumber]
-        selectedBox = [[self.length*self.length+1,self.length*self.length+1], 0]
-        for x in range(0,self.length*self.length):
-            for y in range(0,self.length*self.length):
-                if self.assignment[x][y][0] == 0:
-                    if self.assignment[x][y][1] > selectedBox[1]:
-                        selectedBox = [[x,y], self.assignment[x][y][1]]
-        return selectedBox[0][0], selectedBox[0][1]"""
 
 
     def test_consistant(self, x, y, value):
@@ -195,9 +198,10 @@ class Map:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.length = 3
+        self.length = 5
         self.setWindowTitle("Sudoku")
-        
+        max_length = len(str(self.length*self.length))
+        print(max_length)
         verticalLayout = QVBoxLayout()
         verticalLayout.setAlignment(PySide6.QtCore.Qt.AlignVCenter)
 
@@ -214,11 +218,11 @@ class MainWindow(QMainWindow):
         for x in range(0,self.length*self.length):
             for y in range(0,self.length*self.length):
                 box = QLineEdit()
-                box.setMaxLength(1)
+                box.setMaxLength(max_length)
                 font = box.font()
-                font.setPointSize(30)
+                font.setPointSize(100/self.length)
                 box.setFont(font)
-                box.setMaximumSize(40,40)
+                box.setMaximumSize(150/self.length,150/self.length)
                 box.setAlignment(PySide6.QtCore.Qt.AlignHCenter)
                 self.layout.addWidget(box, x, y)
 
@@ -444,7 +448,6 @@ if __name__ == "__main__":
     test = m.verif()
     print(test)
     print(m.assignment)"""
-
 
     app = QApplication(sys.argv)
 
