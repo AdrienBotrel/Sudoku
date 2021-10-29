@@ -19,6 +19,8 @@ class Map:
         self.constraint = {}
         
         self.assignment = [[[0, 0, []] for i in range(length*length)] for j in range(length*length)]
+        self.algo = "least constraining value"
+        #self.algo = "mrv"
 
     
     def create_constraint(self):
@@ -41,6 +43,7 @@ class Map:
                     if l not in new_list: 
                         new_list.append(l)
                 self.constraint["["+str(x)+","+str(y)+"]"] = new_list
+        print(self.constraint)
         
 
     def draw_map(self):
@@ -94,13 +97,23 @@ class Map:
     def recursive_backtracking(self):
         if self.test_complete(): return self.assignment
         x, y = self.select_unasigned_variable()
-        for value in self.domain:
-            if self.test_consistant(x, y, value):
-                self.add(x,y,value)
-                result = self.recursive_backtracking()
-                if result != False:
-                    return result
-                self.remove(x,y,value)
+        if self.algo == "least constraining value":
+            possible_values = self.leastConstrainingValue(x, y)
+            for value,_ in possible_values:
+                if self.test_consistant(x, y, value):
+                    self.add(x,y,value)
+                    result = self.recursive_backtracking()
+                    if result != False:
+                        return result
+                    self.remove(x,y,value)
+        else:
+            for value in self.domain:
+                if self.test_consistant(x, y, value):
+                    self.add(x,y,value)
+                    result = self.recursive_backtracking()
+                    if result != False:
+                        return result
+                    self.remove(x,y,value)
         return False
         
     #Vérifie si le sudoku est complet en analysant la valeur de chaque case
@@ -118,9 +131,8 @@ class Map:
         #retourne les coordonnées d'une case vide
         #c'est dans cette partie que seront implémentés certains des 4 algorithmes
 
-        algo = "degree heuristic"
 
-        if algo == "mrv":
+        if self.algo == "mrv":
             #Algorithme MRV
             #selectedBox = [coord, legalValuesNumber]
             selectedBox = [[0,0], self.length*self.length + 1]
@@ -129,7 +141,7 @@ class Map:
                     if self.assignment[x][y][0] == 0:
                         if self.assignment[x][y][1] < selectedBox[1]:
                             selectedBox = [[x,y], self.assignment[x][y][1]]
-        elif algo == "degree heuristic": 
+        elif self.algo == "degree heuristic": 
             #Algorithme degree-heuristic
             #selectedBox = [coord, legalValuesNumber]
             selectedBox = [[self.length*self.length+1,self.length*self.length+1], 0]
@@ -139,6 +151,14 @@ class Map:
                         key = "[" + str(x) + "," + str(y) + "]"
                         if len(self.constraint[key]) > selectedBox[1]:
                             selectedBox = [[x,y], self.assignment[x][y][1]]
+
+        elif self.algo == "least constraining value":
+            for x in range(0,self.length*self.length):
+                for y in range(0,self.length*self.length):
+                    if self.assignment[x][y][0] == 0:
+                        selectedBox = [[x,y], self.assignment[x][y][1]]
+                        return selectedBox[0][0], selectedBox[0][1]
+
         return selectedBox[0][0], selectedBox[0][1]
 
 
@@ -193,12 +213,27 @@ class Map:
                 self.assignment[elem[0]][elem[1]][1] += 1
 
 
+    def leastConstrainingValue(self, x, y):
+        values = []
+        for v in self.domain:
+            values.append([v, 0])
+        constraint = self.constraint["["+str(x)+","+str(y)+"]"]
+
+        for v in values:
+            n = 0
+            for c in constraint:
+                if self.assignment[c[0]][c[1]][0]==0 and v[0] in self.assignment[c[0]][c[1]][2]:
+                    n += 1
+            v[1] = n
+        
+        values.sort(key = lambda x: x[1])
+        return values
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.length = 5
+        self.length = 3
         self.setWindowTitle("Sudoku")
         max_length = len(str(self.length*self.length))
         print(max_length)
