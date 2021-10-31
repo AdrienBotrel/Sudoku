@@ -9,20 +9,27 @@ import sys
 
 class Map:
     def __init__(self, length):
+        #taille de la grille (3 correspond à une grille de 9*9)
         self.length = length
-        self.azerty = 0
 
+        #Modélisation du CSP avec définition de VDC (Variable, domaine, contraintes)
         self.variables = [[[0] for i in range(length*length)] for j in range(length*length)]
         self.domain = []
         for l in range(1, length*length + 1):
             self.domain.append(l)
         self.constraint = {}
         
+        #Définition de l'assignement avec une grille de 9*9
+        #Chaque case est défini par sa valeur, le nombre de valeur disponible et la liste des valeurs disponibles
         self.assignment = [[[0, 0, []] for i in range(length*length)] for j in range(length*length)]
-        self.algo = "least constraining value"
+        #Pour le moment, l'algorithme utilisé est défini ici
         #self.algo = "mrv"
+        #self.algo = "degree heuristic"
+        self.algo = "least constraining value"
 
     
+    #Créer un dictionnaire avec pour clé les coordonnées des cases de la grille et en valeur
+    #les coordonnées de toutes les cases possédant des contraintes binaires avec la case en clé
     def create_constraint(self):
         for x in range(0,self.length*self.length):
             for y in range(0,self.length*self.length):
@@ -43,9 +50,10 @@ class Map:
                     if l not in new_list: 
                         new_list.append(l)
                 self.constraint["["+str(x)+","+str(y)+"]"] = new_list
-        print(self.constraint)
-        
 
+
+    #Utilisé pour afficher le sudoku dans le terminal
+    #Surtout utilisé au départ dans la phase de test
     def draw_map(self):
         c = 0
         l= self.length
@@ -78,6 +86,8 @@ class Map:
         print("")
 
 
+    #Utilisé pour vérifier que les conditions du sudoku sont respectées
+    #On compare la valeur de chaque case avec les valeurs des cases avec des contraintes associées
     def verif(self):
         for x in range(0,self.length*self.length):
             for y in range(0,self.length*self.length):
@@ -90,13 +100,17 @@ class Map:
         return True
 
 
+    #Permet de lancer la boucle du backtracking (comme dans le pseudo code)
     def backtracking_search(self):
         return self.recursive_backtracking()
 
 
+    #Boucle de backtracking (comme dans le pseudo code)
     def recursive_backtracking(self):
         if self.test_complete(): return self.assignment
         x, y = self.select_unasigned_variable()
+        #Comme l'algorithme du least constraining value choisit les valeurs différement des autres algorithme,
+        #on crée 2 boucles for pour s'adapter à la situation
         if self.algo == "least constraining value":
             possible_values = self.leastConstrainingValue(x, y)
             for value,_ in possible_values:
@@ -116,7 +130,9 @@ class Map:
                     self.remove(x,y,value)
         return False
         
+
     #Vérifie si le sudoku est complet en analysant la valeur de chaque case
+    #Tant qu'une case est toujours égale à zéro (pas attribué), on continue la boucle de backtracking 
     def test_complete(self):
         complete = True
         for line in self.assignment:
@@ -127,11 +143,9 @@ class Map:
         return complete
 
 
+    #retourne les coordonnées d'une case vide
+    #c'est dans cette partie que seront implémentés le MRV et le degree heuristic
     def select_unasigned_variable(self):
-        #retourne les coordonnées d'une case vide
-        #c'est dans cette partie que seront implémentés certains des 4 algorithmes
-
-
         if self.algo == "mrv":
             #Algorithme MRV
             #selectedBox = [coord, legalValuesNumber]
@@ -153,6 +167,8 @@ class Map:
                             selectedBox = [[x,y], self.assignment[x][y][1]]
 
         elif self.algo == "least constraining value":
+            #Algorithme de least constraining value
+            #selectBox = [coord, legalValuesNumber]
             for x in range(0,self.length*self.length):
                 for y in range(0,self.length*self.length):
                     if self.assignment[x][y][0] == 0:
@@ -161,7 +177,9 @@ class Map:
 
         return selectedBox[0][0], selectedBox[0][1]
 
-
+    
+    #On test si la valeur donnée en paramètres est déjà utilisée dans les cases possédant des
+    #contraintes binaires avec la case[x,y]. Si c'est le cas, on passe à la contrainte suivante
     def test_consistant(self, x, y, value):
         if (x==self.length*self.length+1 and y==self.length*self.length+1):
             return False
@@ -175,6 +193,8 @@ class Map:
         return True
 
 
+    #On initialise la variable assignment avec les valeurs déjà définies par l'utilisateur
+    #A modifier pour les contraintes
     def update_legal_variable(self):
         for x in range (0,self.length*self.length):
             for y in range (0,self.length*self.length):
@@ -189,6 +209,8 @@ class Map:
                 self.assignment[x][y][2] = values
 
 
+    #Ajoute une valeur à une case dans la variable assignment. 
+    #On modifie les valeurs possibles pour les cases avec des contraintes binaires 
     def add(self, x, y, value):
         self.assignment[x][y][0] = value
 
@@ -201,6 +223,8 @@ class Map:
                 self.assignment[elem[0]][elem[1]][1] -= 1
     
 
+    #Retire une valeur à une case dans la variable assignment. 
+    #On modifie les valeurs possibles pour les cases avec des contraintes binaires 
     def remove(self, x, y, value):
         self.assignment[x][y][0] = 0
 
@@ -213,6 +237,9 @@ class Map:
                 self.assignment[elem[0]][elem[1]][1] += 1
 
 
+    #Algorithme permettant de récupérer la liste des valeurs possibles pour l'algorithme de least constraining value
+    #Les valeurs sot triés de celle modifiant le moins les valeurs possibles pour les cases avec des contraintes binaires
+    # jusque celle les modifiant le plus 
     def leastConstrainingValue(self, x, y):
         values = []
         for v in self.domain:
@@ -230,6 +257,7 @@ class Map:
         return values
 
 
+#classe s'occupant de l'affichage du sudoku dans une fenêtre à part
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -287,6 +315,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         
 
+    #Récupère les valeurs données par l'utilisateur, utilise le backtracking pour résoudre le sudoku 
+    # et affiche le résultat obtenu
     def validate_button_clicked(self):
         layout = self.layout
         m = Map(self.length)
@@ -313,6 +343,7 @@ class MainWindow(QMainWindow):
         m.draw_map()
 
 
+    #Retire toutes les valeurs du sudoku afin que l'utilisateur puisse rentrer un nouveau sudoku à résoudre
     def clear_button_clicked(self):
         layout = self.layout
 
@@ -326,7 +357,7 @@ class MainWindow(QMainWindow):
 
 
 
-
+#Permet de lancer le code en affichant l'interface
 if __name__ == "__main__":    
     """m = Map()
     #for liste in m.grid:
