@@ -7,6 +7,8 @@ from PySide6.QtGui import QPalette, QColor, QScreen, QGuiApplication, QFont
 import PySide6
 import sys
 
+import requests
+
 class Map:
     def __init__(self, length):
         #taille de la grille (3 correspond à une grille de 9*9)
@@ -357,6 +359,15 @@ class MainWindow(QMainWindow):
         verticalLayout.addWidget(clear_button)
 
 
+        fill_button = QPushButton("remplir depuis un site")
+        fill_button.clicked.connect(self.fill_button_clicked)
+        font = fill_button.font()
+        font.setPointSize(30)
+        fill_button.setFont(font)
+
+        verticalLayout.addWidget(fill_button)
+
+
         widget = QWidget()
         widget.setLayout(verticalLayout)
         self.setCentralWidget(widget)
@@ -399,6 +410,34 @@ class MainWindow(QMainWindow):
                 box = layout.itemAtPosition(x,y).widget()
                 box.setText("")
                 box.setStyleSheet("color: black;")
+
+
+    #Donner une valuer initiale à la table de sudoku à partir d'un site
+    def fill_button_clicked(self):
+        response = requests.get("https://sugoku.herokuapp.com/board?difficulty=easy")
+        grid = response.json()['board']
+        grid_original = [[grid[x][y] for y in range(len(grid[0]))] for x in range(len(grid))]
+
+        layout = self.layout
+        m = Map(self.length)
+        m.draw_map()
+
+        print(grid_original)
+
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
+                box = layout.itemAtPosition(x,y).widget()
+                if grid_original[x][y]:
+                    box.setStyleSheet("color: red;")
+                    m.assignment[x][y][0] = int(grid_original[x][y])
+                else:
+                    m.assignment[x][y][0] = 0
+
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
+                if (m.assignment[x][y][0] != 0):
+                    box = layout.itemAtPosition(x,y).widget()
+                    box.setText(str(m.assignment[x][y][0]))
 
                 
 
