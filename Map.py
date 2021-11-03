@@ -257,6 +257,47 @@ class Map:
         return values
 
 
+
+
+    ## AC3
+    
+    def create_arc(self):
+        var=self.constraint.copy()
+        m_liste=[]
+        for i in self.domain:
+            for j in self.domain:
+                key=[i-1,j-1]
+                arc=var.pop('['+str(key[0])+','+str(key[1])+']')
+                for k in arc:
+                    if (k,key) not in m_liste:
+                        m_liste+=[(key,k)]
+        return m_liste
+    
+    def test_inconsistent_values(self,x,Xj):
+        for y in self.assignment[Xj[0]][Xj[1]][2]:
+            if x!=y:
+                return False
+        return True
+    
+    def remove_inconsistent_values(self,Xi,Xj):
+        removed=False
+        for x in self.assignment[Xi[0]][Xi[1]][2]:
+            if self.test_inconsistent_values(x,Xj):
+                self.assignment[Xi[0]][Xi[1]][2].remove(x)
+                self.assignment[Xi[0]][Xi[1]][1]-=1
+                removed=True
+        return removed
+    
+    def AC3(self):
+        queue=self.create_arc()
+        while(len(queue)>0):
+            Xi, Xj=queue.pop(0)
+            if self.remove_inconsistent_values(Xi,Xj):
+                for Xk in self.constraint.get('['+str(Xi[0])+','+str(Xi[1])+']'):
+                    queue+=[(Xk,Xi)]
+
+
+        
 #classe s'occupant de l'affichage du sudoku dans une fenêtre à part
 class MainWindow(QMainWindow):
     def __init__(self):
