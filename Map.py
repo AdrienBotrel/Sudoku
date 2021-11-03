@@ -107,6 +107,7 @@ class Map:
 
     #Boucle de backtracking (comme dans le pseudo code)
     def recursive_backtracking(self):
+        print(self.assignment)
         if self.test_complete(): return self.assignment
         x, y = self.select_unasigned_variable()
         #Comme l'algorithme du least constraining value choisit les valeurs différement des autres algorithme,
@@ -200,13 +201,18 @@ class Map:
             for y in range (0,self.length*self.length):
                 values = copy.copy(self.domain)
 
-                key = "[" + str(x) + "," + str(y) + "]"
-                list_constraint = self.constraint[key]
-                for elem in list_constraint:
-                    if self.assignment[elem[0]][elem[1]][0] in values:
-                        values.remove(self.assignment[elem[0]][elem[1]][0])
-                self.assignment[x][y][1] = len(values)
-                self.assignment[x][y][2] = values
+                if self.assignment[x][y][0] != 0:
+                    self.assignment[x][y][1] = 1
+                    self.assignment[x][y][2] = [self.assignment[x][y][0]]
+                else :
+                    key = "[" + str(x) + "," + str(y) + "]"
+                    list_constraint = self.constraint[key]
+                    for elem in list_constraint:
+                        if self.assignment[elem[0]][elem[1]][0] in values:
+                            values.remove(self.assignment[elem[0]][elem[1]][0])
+                    
+                    self.assignment[x][y][1] = len(values)
+                    self.assignment[x][y][2] = values
 
 
     #Ajoute une valeur à une case dans la variable assignment. 
@@ -302,7 +308,7 @@ class Map:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.length = 3
+        self.length = 2
         self.setWindowTitle("Sudoku")
         max_length = len(str(self.length*self.length))
         print(max_length)
