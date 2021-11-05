@@ -2,12 +2,17 @@ from random import randrange
 import copy
 import time
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QGridLayout, QLineEdit, QVBoxLayout, QWidget, QPushButton, QLabel, QWidgetItem, QColorDialog
-from PySide6.QtGui import QPalette, QColor, QScreen, QGuiApplication, QFont
+from PySide6.QtWidgets import QApplication, QMainWindow, QGridLayout, QLineEdit, QVBoxLayout, QWidget, QPushButton, QLabel, QToolBar, QStatusBar, QWidgetItem, QColorDialog
+from PySide6.QtGui import QPalette, QColor, QScreen, QGuiApplication, QFont, QAction
 import PySide6
 import sys
 
 import requests
+
+USED_ALGO = "least constraining value"
+#USED_ALGO = "mrv"
+#USED_ALGO = "degree heuristic"
+#USED_ALGO = "ac3"
 
 class Map:
     def __init__(self, length):
@@ -25,11 +30,11 @@ class Map:
         #Chaque case est défini par sa valeur, le nombre de valeur disponible et la liste des valeurs disponibles
         self.assignment = [[[0, 0, []] for i in range(length*length)] for j in range(length*length)]
         #Pour le moment, l'algorithme utilisé est défini ici
-        self.algo = "mrv"
-        #self.algo = "degree heuristic"
-        #self.algo = "least constraining value"
-        #self.algo = "ac3"
+        
+        self.algo = USED_ALGO        
+        print("> Used algorithme : ",self.algo)
     
+
     #Créer un dictionnaire avec pour clé les coordonnées des cases de la grille et en valeur
     #les coordonnées de toutes les cases possédant des contraintes binaires avec la case en clé
     def create_constraint(self):
@@ -363,6 +368,7 @@ class Map:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self._createMenuBar() # créer une bare de menu
         self.length = 3
         self.setWindowTitle("Sudoku")
         max_length = len(str(self.length*self.length))
@@ -395,7 +401,7 @@ class MainWindow(QMainWindow):
         verticalLayout.addLayout(self.layout)
 
 
-        validate_button = QPushButton("valider")
+        validate_button = QPushButton("Valider")
         validate_button.clicked.connect(self.validate_button_clicked)
         font = validate_button.font()
         font.setPointSize(30)
@@ -403,7 +409,7 @@ class MainWindow(QMainWindow):
 
         verticalLayout.addWidget(validate_button)
 
-        clear_button = QPushButton("effacer")
+        clear_button = QPushButton("Effacer")
         clear_button.clicked.connect(self.clear_button_clicked)
         font = clear_button.font()
         font.setPointSize(30)
@@ -412,7 +418,7 @@ class MainWindow(QMainWindow):
         verticalLayout.addWidget(clear_button)
 
 
-        fill_button = QPushButton("remplir depuis un site")
+        fill_button = QPushButton("* Remplir table Sudoku depuis Internet *")
         fill_button.clicked.connect(self.fill_button_clicked)
         font = fill_button.font()
         font.setPointSize(30)
@@ -481,7 +487,7 @@ class MainWindow(QMainWindow):
             m = Map(self.length)
             m.draw_map()
 
-            print(grid_original)
+            #print(grid_original)
 
             for x in range(0,self.length*self.length):
                 for y in range(0,self.length*self.length):
@@ -498,7 +504,61 @@ class MainWindow(QMainWindow):
                         box = layout.itemAtPosition(x,y).widget()
                         box.setText(str(m.assignment[x][y][0]))
 
-                
+
+    def _createMenuBar(self):
+        menuBar = self.menuBar()
+        # Creating menus using a QMenu object
+        algoMenu = menuBar.addMenu("&Algorithme_utilisé")
+        # algoMenu.addAction("alg1")
+        # algoMenu.addAction("alg2")
+        # algoMenu.addAction("alg3")
+        # toolbar = QToolBar("My main toolbar")
+        # self.addToolBar(toolbar)
+
+        ac3_action = QAction("AC-3", self)
+        ac3_action.setStatusTip("Algorithme AC-3")
+        ac3_action.triggered.connect(self.onAC3ButtonClick)
+
+        mrv_action = QAction("MRV", self)
+        mrv_action.setStatusTip("Algorithme MRV")
+        mrv_action.triggered.connect(self.onMRVButtonClick)
+
+        degree_action = QAction("degree_heuristic", self)
+        degree_action.setStatusTip("Algorithme degree heuristic")
+        degree_action.triggered.connect(self.onDegreeHeuristicButtonClick)
+
+        lcv_action = QAction("least_constraining_value", self)
+        lcv_action.setStatusTip("Algorithme least constraining value")
+        lcv_action.triggered.connect(self.onLeastConstrainingValueButtonClick)
+        # toolbar.addAction(button_action)
+
+        # self.setStatusBar(QStatusBar(self))
+        algoMenu.addAction(ac3_action)
+        algoMenu.addAction(mrv_action)
+        algoMenu.addAction(degree_action)
+        algoMenu.addAction(lcv_action)
+
+
+    def onAC3ButtonClick(self, s):
+        global USED_ALGO
+        USED_ALGO = "ac3"
+        print(USED_ALGO)
+        
+    
+    def onMRVButtonClick(self, s):
+        global USED_ALGO
+        USED_ALGO = "mrv"
+        print(USED_ALGO)
+
+    def onDegreeHeuristicButtonClick(self, s):
+        global USED_ALGO
+        USED_ALGO = "degree heuristic"
+        print(USED_ALGO)
+
+    def onLeastConstrainingValueButtonClick(self, s):
+        global USED_ALGO
+        USED_ALGO = "least constraining value"
+        print(USED_ALGO)           
 
 
 
