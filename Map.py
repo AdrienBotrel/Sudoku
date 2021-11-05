@@ -114,7 +114,8 @@ class Map:
         x, y = self.select_unasigned_variable()
 
         #Comme l'algorithme du least constraining value choisit les valeurs différement des autres algorithme,
-        #on crée 2 boucles for pour s'adapter à la situation
+        #on crée 3 boucles for pour s'adapter à la situation
+        # Boucle du least constraining value
         if self.algo == "least constraining value":
             possible_values = self.leastConstrainingValue(x, y)
             for value,_ in possible_values:
@@ -129,24 +130,28 @@ class Map:
         elif self.algo == "ac3":
             for value in self.assignment[x][y][2]:
                 
+                #Add value
                 prevVal=self.assignment[x][y][2]
                 self.assignment[x][y][2]=[value]
                 self.assignment[x][y][0] = value
                 prevNb=self.assignment[x][y][1]
                 self.assignment[x][y][1] = 1
-                
+                #Fin Add value
+
                 self.AC3()
                 
                 result = self.recursive_backtracking()
                 if result != False:
                     return result
                 
+                #Remove value
                 self.assignment[x][y][0]=0           
                 self.assignment[x][y][1]=prevNb
                 self.assignment[x][y][2]=prevVal 
                 self.update_legal_variable()
+                #Fin Remove value
 
-               
+        #Boucle du MRV et du degree-heuristic       
         else:
             for value in self.domain:
                 if self.test_consistant(x, y, value):
@@ -310,8 +315,8 @@ class Map:
 
 
     ## AC3
-    
-    # Algorithme permettant de créer une liste de tous les arcs du sudoku (envisager de le créer une seule fois, self.all_arc=self.create_arc())
+    # Algorithme permettant de créer une liste de tous les arcs du sudoku 
+    # (envisager de le créer une seule fois, self.all_arc=self.create_arc())
     def create_arc(self):
         var=self.constraint.copy()
         m_liste=[]
@@ -428,52 +433,16 @@ class MainWindow(QMainWindow):
         m = Map(self.length)
         m.draw_map()
 
-        #for x in range(0,self.length*self.length):
-        #    for y in range(0,self.length*self.length):
-        #        box = layout.itemAtPosition(x,y).widget()
-        #        if box.text() == "":
-        #            m.assignment[x][y][0] = 0
-        #        else:
-        #            box.setStyleSheet("color: red;")
-        #            m.assignment[x][y][0] = int(box.text())
+        for x in range(0,self.length*self.length):
+            for y in range(0,self.length*self.length):
+                box = layout.itemAtPosition(x,y).widget()
+                if box.text() == "":
+                    m.assignment[x][y][0] = 0
+                else:
+                    box.setStyleSheet("color: red;")
+                    m.assignment[x][y][0] = int(box.text())
 
         
-        m.assignment[0][2][0] = 7
-        m.assignment[0][4][0] = 4
-        m.assignment[0][6][0] = 9
-
-        m.assignment[1][0][0] = 8
-        m.assignment[1][1][0] = 9
-        m.assignment[1][4][0] = 5
-
-        m.assignment[2][3][0] = 8
-        m.assignment[2][7][0] = 2
-        m.assignment[2][8][0] = 5
-
-        m.assignment[3][1][0] = 1
-        m.assignment[3][2][0] = 4
-        m.assignment[3][5][0] = 7
-
-        m.assignment[4][0][0] = 3
-        m.assignment[4][3][0] = 1
-        m.assignment[4][6][0] = 4
-
-        m.assignment[5][3][0] = 3
-        m.assignment[5][7][0] = 8
-        m.assignment[5][8][0] = 7
-
-        m.assignment[6][0][0] = 1
-        m.assignment[6][7][0] = 7
-        m.assignment[6][8][0] = 6
-
-        m.assignment[7][4][0] = 1
-        m.assignment[7][5][0] = 5
-        m.assignment[7][6][0] = 2
-
-        m.assignment[8][1][0] = 4
-        m.assignment[8][2][0] = 2
-        m.assignment[8][5][0] = 6
-
         m.draw_map()
         m.create_constraint()
         m.update_legal_variable()
@@ -631,6 +600,336 @@ if __name__ == "__main__":
     m.assignment[8][7][0] = 9
     m.assignment[8][8][0] = 8
 
+m.assignment[5][0][0] = 12
+        m.assignment[5][1][0] = 13
+        m.assignment[5][2][0] = 3
+        m.assignment[5][3][0] = 5
+        m.assignment[5][4][0] = 9
+        m.assignment[5][5][0] = 4
+        m.assignment[5][6][0] = 8
+        m.assignment[5][7][0] = 6
+        m.assignment[5][8][0] = 2
+        m.assignment[5][9][0] = 1
+        m.assignment[5][10][0] = 7
+        m.assignment[5][11][0] = 3
+        m.assignment[5][12][0] = 5
+        m.assignment[5][13][0] = 9
+        m.assignment[5][14][0] = 4
+        m.assignment[5][15][0] = 8
+
+        m.assignment[6][0][0] = 1
+        m.assignment[6][1][0] = 7
+        m.assignment[6][2][0] = 3
+        m.assignment[6][3][0] = 5
+        m.assignment[6][4][0] = 9
+        m.assignment[6][5][0] = 4
+        m.assignment[6][6][0] = 8
+        m.assignment[6][7][0] = 6
+        m.assignment[6][8][0] = 2
+        m.assignment[6][9][0] = 1
+        m.assignment[6][10][0] = 7
+        m.assignment[6][11][0] = 3
+        m.assignment[6][12][0] = 5
+        m.assignment[6][13][0] = 9
+        m.assignment[6][14][0] = 4
+        m.assignment[6][15][0] = 8
+
+        m.assignment[7][0][0] = 1
+        m.assignment[7][1][0] = 7
+        m.assignment[7][2][0] = 3
+        m.assignment[7][3][0] = 5
+        m.assignment[7][4][0] = 9
+        m.assignment[7][5][0] = 4
+        m.assignment[7][6][0] = 8
+        m.assignment[7][7][0] = 6
+        m.assignment[7][8][0] = 2
+        m.assignment[7][9][0] = 1
+        m.assignment[7][10][0] = 7
+        m.assignment[7][11][0] = 3
+        m.assignment[7][12][0] = 5
+        m.assignment[7][13][0] = 9
+        m.assignment[7][14][0] = 4
+        m.assignment[7][15][0] = 8
+
+        m.assignment[8][0][0] = 1
+        m.assignment[8][1][0] = 7
+        m.assignment[8][2][0] = 3
+        m.assignment[8][3][0] = 5
+        m.assignment[8][4][0] = 9
+        m.assignment[8][5][0] = 4
+        m.assignment[8][6][0] = 8
+        m.assignment[8][7][0] = 6
+        m.assignment[8][8][0] = 2
+        m.assignment[8][9][0] = 1
+        m.assignment[8][10][0] = 7
+        m.assignment[8][11][0] = 3
+        m.assignment[8][12][0] = 5
+        m.assignment[8][13][0] = 9
+        m.assignment[8][14][0] = 4
+        m.assignment[8][15][0] = 8
+
+        m.assignment[9][0][0] = 1
+        m.assignment[9][1][0] = 7
+        m.assignment[9][2][0] = 3
+        m.assignment[9][3][0] = 5
+        m.assignment[9][4][0] = 9
+        m.assignment[9][5][0] = 4
+        m.assignment[9][6][0] = 8
+        m.assignment[9][7][0] = 6
+        m.assignment[9][8][0] = 2
+        m.assignment[9][9][0] = 1
+        m.assignment[9][10][0] = 7
+        m.assignment[9][11][0] = 3
+        m.assignment[9][12][0] = 5
+        m.assignment[9][13][0] = 9
+        m.assignment[9][14][0] = 4
+        m.assignment[9][15][0] = 8
+
+        m.assignment[10][0][0] = 1
+        m.assignment[10][1][0] = 7
+        m.assignment[10][2][0] = 3
+        m.assignment[10][3][0] = 5
+        m.assignment[10][4][0] = 9
+        m.assignment[10][5][0] = 4
+        m.assignment[10][6][0] = 8
+        m.assignment[10][7][0] = 6
+        m.assignment[10][8][0] = 2
+        m.assignment[10][9][0] = 1
+        m.assignment[10][10][0] = 7
+        m.assignment[10][11][0] = 3
+        m.assignment[10][12][0] = 5
+        m.assignment[10][13][0] = 9
+        m.assignment[10][14][0] = 4
+        m.assignment[10][15][0] = 8
+
+        m.assignment[11][0][0] = 1
+        m.assignment[11][1][0] = 7
+        m.assignment[11][2][0] = 3
+        m.assignment[11][3][0] = 5
+        m.assignment[11][4][0] = 9
+        m.assignment[11][5][0] = 4
+        m.assignment[11][6][0] = 8
+        m.assignment[11][7][0] = 6
+        m.assignment[11][8][0] = 2
+        m.assignment[11][9][0] = 1
+        m.assignment[11][10][0] = 7
+        m.assignment[11][11][0] = 3
+        m.assignment[11][12][0] = 5
+        m.assignment[11][13][0] = 9
+        m.assignment[11][14][0] = 4
+        m.assignment[11][15][0] = 8
+
+        m.assignment[12][0][0] = 1
+        m.assignment[12][1][0] = 7
+        m.assignment[12][2][0] = 3
+        m.assignment[12][3][0] = 5
+        m.assignment[12][4][0] = 9
+        m.assignment[12][5][0] = 4
+        m.assignment[12][6][0] = 8
+        m.assignment[12][7][0] = 6
+        m.assignment[12][8][0] = 2
+        m.assignment[12][9][0] = 1
+        m.assignment[12][10][0] = 7
+        m.assignment[12][11][0] = 3
+        m.assignment[12][12][0] = 5
+        m.assignment[12][13][0] = 9
+        m.assignment[12][14][0] = 4
+        m.assignment[12][15][0] = 8
+
+        m.assignment[13][0][0] = 1
+        m.assignment[13][1][0] = 7
+        m.assignment[13][2][0] = 3
+        m.assignment[13][3][0] = 5
+        m.assignment[13][4][0] = 9
+        m.assignment[13][5][0] = 4
+        m.assignment[13][6][0] = 8
+        m.assignment[13][7][0] = 6
+        m.assignment[13][8][0] = 2
+        m.assignment[13][9][0] = 1
+        m.assignment[13][10][0] = 7
+        m.assignment[13][11][0] = 3
+        m.assignment[13][12][0] = 5
+        m.assignment[13][13][0] = 9
+        m.assignment[13][14][0] = 4
+        m.assignment[13][15][0] = 8
+
+        m.assignment[14][0][0] = 1
+        m.assignment[14][1][0] = 7
+        m.assignment[14][2][0] = 3
+        m.assignment[14][3][0] = 5
+        m.assignment[14][4][0] = 9
+        m.assignment[14][5][0] = 4
+        m.assignment[14][6][0] = 8
+        m.assignment[14][7][0] = 6
+        m.assignment[14][8][0] = 2
+        m.assignment[14][9][0] = 1
+        m.assignment[14][10][0] = 7
+        m.assignment[14][11][0] = 3
+        m.assignment[14][12][0] = 5
+        m.assignment[14][13][0] = 9
+        m.assignment[14][14][0] = 4
+        m.assignment[14][15][0] = 8
+
+        m.assignment[15][0][0] = 1
+        m.assignment[15][1][0] = 7
+        m.assignment[15][2][0] = 3
+        m.assignment[15][3][0] = 5
+        m.assignment[15][4][0] = 9
+        m.assignment[15][5][0] = 4
+        m.assignment[15][6][0] = 8
+        m.assignment[15][7][0] = 6
+        m.assignment[15][8][0] = 2
+        m.assignment[15][9][0] = 1
+        m.assignment[15][10][0] = 7
+        m.assignment[15][11][0] = 3
+        m.assignment[15][12][0] = 5
+        m.assignment[15][13][0] = 9
+        m.assignment[15][14][0] = 4
+        m.assignment[15][15][0] = 8
+
+        m.assignment[0][1][0] = 6
+        m.assignment[0][7][0] = 8
+        m.assignment[0][8][0] = 11
+        m.assignment[0][15][0] = 15
+        m.assignment[0][12][0] = 14
+        m.assignment[0][15][0] = 16
+
+        m.assignment[1][0][0] = 15
+        m.assignment[1][1][0] = 11
+        m.assignment[1][5][0] = 16
+        m.assignment[1][6][0] = 14
+        m.assignment[1][10][0] = 12
+        m.assignment[1][13][0] = 6
+
+        m.assignment[2][0][0] = 13
+        m.assignment[2][2][0] = 9
+        m.assignment[2][3][0] = 12
+        m.assignment[2][8][0] = 3
+        m.assignment[2][9][0] = 16
+        m.assignment[2][10][0] = 14
+        m.assignment[2][12][0] = 15
+        m.assignment[2][13][0] = 11
+        m.assignment[2][14][0] = 10
+
+        m.assignment[3][0][0] = 2
+        m.assignment[3][2][0] = 16
+        m.assignment[3][4][0] = 11
+        m.assignment[3][6][0] = 15
+        m.assignment[3][7][0] = 10
+        m.assignment[3][8][0] = 1
+
+        m.assignment[4][1][0] = 15
+        m.assignment[4][2][0] = 11
+        m.assignment[4][3][0] = 10
+        m.assignment[4][6][0] = 16
+        m.assignment[4][7][0] = 2
+        m.assignment[4][8][0] = 13
+        m.assignment[4][9][0] = 8
+        m.assignment[4][10][0] = 9
+        m.assignment[4][11][0] = 12
+
+        m.assignment[5][0][0] = 12
+        m.assignment[5][1][0] = 13
+        m.assignment[5][4][0] = 4
+        m.assignment[5][5][0] = 1
+        m.assignment[5][6][0] = 5
+        m.assignment[5][7][0] = 6
+        m.assignment[5][8][0] = 2
+        m.assignment[5][9][0] = 3
+        m.assignment[5][14][0] = 11
+        m.assignment[5][15][0] = 10
+
+        m.assignment[6][0][0] = 5
+        m.assignment[6][2][0] = 6
+        m.assignment[6][3][0] = 1
+        m.assignment[6][4][0] = 12
+        m.assignment[6][6][0] = 9
+        m.assignment[6][8][0] = 15
+        m.assignment[6][9][0] = 11
+        m.assignment[6][10][0] = 10
+        m.assignment[6][11][0] = 7
+        m.assignment[6][12][0] = 16
+        m.assignment[6][15][0] = 3
+
+        m.assignment[7][1][0] = 2
+        m.assignment[7][5][0] = 10
+        m.assignment[7][7][0] = 11
+        m.assignment[7][8][0] = 6
+        m.assignment[7][10][0] = 5
+        m.assignment[7][13][0] = 13
+        m.assignment[7][15][0] = 9
+
+        m.assignment[8][0][0] = 10
+        m.assignment[8][1][0] = 7
+        m.assignment[8][2][0] = 15
+        m.assignment[8][3][0] = 11
+        m.assignment[8][4][0] = 16
+        m.assignment[8][8][0] = 12
+        m.assignment[8][9][0] = 13
+        m.assignment[8][15][0] = 6
+
+        m.assignment[9][0][0] = 9
+        m.assignment[9][6][0] = 1
+        m.assignment[9][9][0] = 2
+        m.assignment[9][11][0] = 16
+        m.assignment[9][12][0] = 10
+        m.assignment[9][15][0] = 11
+
+        m.assignment[10][0][0] = 1
+        m.assignment[10][2][0] = 4
+        m.assignment[10][3][0] = 6
+        m.assignment[10][4][0] = 9
+        m.assignment[10][5][0] = 13
+        m.assignment[10][8][0] = 7
+        m.assignment[10][10][0] = 11
+        m.assignment[10][12][0] = 3
+        m.assignment[10][13][0] = 16
+
+        m.assignment[11][0][0] = 16
+        m.assignment[11][1][0] = 14
+        m.assignment[11][4][0] = 7
+        m.assignment[11][6][0] = 10
+        m.assignment[11][7][0] = 15
+        m.assignment[11][8][0] = 4
+        m.assignment[11][9][0] = 6
+        m.assignment[11][10][0] = 1
+        m.assignment[11][14][0] = 13
+        m.assignment[11][15][0] = 8
+
+        m.assignment[12][0][0] = 11
+        m.assignment[12][1][0] = 10
+        m.assignment[12][3][0] = 15
+        m.assignment[12][7][0] = 16
+        m.assignment[12][8][0] = 9
+        m.assignment[12][9][0] = 12
+        m.assignment[12][10][0] = 13
+        m.assignment[12][13][0] = 1
+        m.assignment[12][14][0] = 5
+        m.assignment[12][15][0] = 4
+
+        m.assignment[13][2][0] = 12
+        m.assignment[13][4][0] = 1
+        m.assignment[13][5][0] = 4
+        m.assignment[13][6][0] = 6
+        m.assignment[13][8][0] = 16
+        m.assignment[13][12][0] = 11
+        m.assignment[13][13][0] = 10
+
+        m.assignment[14][2][0] = 5
+        m.assignment[14][4][0] = 8
+        m.assignment[14][5][0] = 12
+        m.assignment[14][6][0] = 13
+        m.assignment[14][8][0] = 10
+        m.assignment[14][11][0] = 11
+        m.assignment[14][12][0] = 2
+        m.assignment[14][15][0] = 14
+
+        m.assignment[15][0][0] = 3
+        m.assignment[15][1][0] = 16
+        m.assignment[15][4][0] = 10
+        m.assignment[15][7][0] = 7
+        m.assignment[15][10][0] = 6
+        m.assignment[15][14][0] = 12
 
     #Solution à tester
     m.assignment[0][2][0] = 1
@@ -679,6 +978,46 @@ if __name__ == "__main__":
     m.assignment[8][6][0] = 5
     m.assignment[8][8][0] = 8
    
+
+
+
+
+     m.assignment[0][2][0] = 7
+        m.assignment[0][4][0] = 4
+        m.assignment[0][6][0] = 9
+
+        m.assignment[1][0][0] = 8
+        m.assignment[1][1][0] = 9
+        m.assignment[1][4][0] = 5
+
+        m.assignment[2][3][0] = 8
+        m.assignment[2][7][0] = 2
+        m.assignment[2][8][0] = 5
+
+        m.assignment[3][1][0] = 1
+        m.assignment[3][2][0] = 4
+        m.assignment[3][5][0] = 7
+
+        m.assignment[4][0][0] = 3
+        m.assignment[4][3][0] = 1
+        m.assignment[4][6][0] = 4
+
+        m.assignment[5][3][0] = 3
+        m.assignment[5][7][0] = 8
+        m.assignment[5][8][0] = 7
+
+        m.assignment[6][0][0] = 1
+        m.assignment[6][7][0] = 7
+        m.assignment[6][8][0] = 6
+
+        m.assignment[7][4][0] = 1
+        m.assignment[7][5][0] = 5
+        m.assignment[7][6][0] = 2
+
+        m.assignment[8][1][0] = 4
+        m.assignment[8][2][0] = 2
+        m.assignment[8][5][0] = 6
+
 
     m.create_constraint()
     m.update_legal_variable()
