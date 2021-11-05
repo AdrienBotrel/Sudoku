@@ -25,9 +25,9 @@ class Map:
         #Chaque case est défini par sa valeur, le nombre de valeur disponible et la liste des valeurs disponibles
         self.assignment = [[[0, 0, []] for i in range(length*length)] for j in range(length*length)]
         #Pour le moment, l'algorithme utilisé est défini ici
-        #self.algo = "mrv"
+        self.algo = "mrv"
         #self.algo = "degree heuristic"
-        self.algo = "least constraining value"
+        #self.algo = "least constraining value"
 
     
     #Créer un dictionnaire avec pour clé les coordonnées des cases de la grille et en valeur
@@ -109,9 +109,9 @@ class Map:
 
     #Boucle de backtracking (comme dans le pseudo code)
     def recursive_backtracking(self):
-        print(self.assignment)
         if self.test_complete(): return self.assignment
         x, y = self.select_unasigned_variable()
+
         #Comme l'algorithme du least constraining value choisit les valeurs différement des autres algorithme,
         #on crée 2 boucles for pour s'adapter à la situation
         if self.algo == "least constraining value":
@@ -190,10 +190,10 @@ class Map:
         key = "[" + str(x) + "," + str(y) + "]"
         list_constraint = self.constraint[key]
 
-        for elem in list_constraint:
-            if self.assignment[elem[0]][elem[1]][0] == value:
-                return False
-        return True
+        if value in self.assignment[x][y][2]:
+            return True
+        
+        return False
 
 
     #On initialise la variable assignment avec les valeurs déjà définies par l'utilisateur
@@ -221,6 +221,8 @@ class Map:
     #On modifie les valeurs possibles pour les cases avec des contraintes binaires 
     def add(self, x, y, value):
         self.assignment[x][y][0] = value
+        self.assignment[x][y][2] = [value]
+        self.assignment[x][y][1] = 1
 
         key = "[" + str(x) + "," + str(y) + "]"
         list_constraint = self.constraint[key]
@@ -239,10 +241,26 @@ class Map:
         key = "[" + str(x) + "," + str(y) + "]"
         list_constraint = self.constraint[key]
 
+        domainLocal = copy.copy(self.domain)
         for elem in list_constraint:
-            if value not in self.assignment[elem[0]][elem[1]][2]:
-                self.assignment[elem[0]][elem[1]][2].append(value)
-                self.assignment[elem[0]][elem[1]][1] += 1
+            if self.assignment[elem[0]][elem[1]][0] != 0 and  self.assignment[elem[0]][elem[1]][0] in domainLocal:
+                domainLocal.remove(self.assignment[elem[0]][elem[1]][0])
+
+        self.assignment[x][y][2] = domainLocal
+        self.assignment[x][y][1] = len(domainLocal)
+
+        for elem in list_constraint:
+            if self.assignment[elem[0]][elem[1]][0] == 0:
+                if value not in self.assignment[elem[0]][elem[1]][2]:
+                    key_bis = "[" + str(elem[0]) + "," + str(elem[1]) + "]"
+                    list_constraint_bis = self.constraint[key_bis]
+                    add_value = True
+                    for elem_bis in list_constraint_bis:
+                        if value == self.assignment[elem_bis[0]][elem_bis[1]][0]:
+                            add_value = False
+                    if add_value:
+                        self.assignment[elem[0]][elem[1]][2].append(value)
+                        self.assignment[elem[0]][elem[1]][1] += 1
 
 
     #Algorithme permettant de récupérer la liste des valeurs possibles pour l'algorithme de least constraining value
@@ -310,7 +328,7 @@ class Map:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.length = 2
+        self.length = 3
         self.setWindowTitle("Sudoku")
         max_length = len(str(self.length*self.length))
         print(max_length)
@@ -380,14 +398,52 @@ class MainWindow(QMainWindow):
         m = Map(self.length)
         m.draw_map()
 
-        for x in range(0,self.length*self.length):
-            for y in range(0,self.length*self.length):
-                box = layout.itemAtPosition(x,y).widget()
-                if box.text() == "":
-                    m.assignment[x][y][0] = 0
-                else:
-                    box.setStyleSheet("color: red;")
-                    m.assignment[x][y][0] = int(box.text())
+        #for x in range(0,self.length*self.length):
+        #    for y in range(0,self.length*self.length):
+        #        box = layout.itemAtPosition(x,y).widget()
+        #        if box.text() == "":
+        #            m.assignment[x][y][0] = 0
+        #        else:
+        #            box.setStyleSheet("color: red;")
+        #            m.assignment[x][y][0] = int(box.text())
+
+        
+        m.assignment[0][2][0] = 7
+        m.assignment[0][4][0] = 4
+        m.assignment[0][6][0] = 9
+
+        m.assignment[1][0][0] = 8
+        m.assignment[1][1][0] = 9
+        m.assignment[1][4][0] = 5
+
+        m.assignment[2][3][0] = 8
+        m.assignment[2][7][0] = 2
+        m.assignment[2][8][0] = 5
+
+        m.assignment[3][1][0] = 1
+        m.assignment[3][2][0] = 4
+        m.assignment[3][5][0] = 7
+
+        m.assignment[4][0][0] = 3
+        m.assignment[4][3][0] = 1
+        m.assignment[4][6][0] = 4
+
+        m.assignment[5][3][0] = 3
+        m.assignment[5][7][0] = 8
+        m.assignment[5][8][0] = 7
+
+        m.assignment[6][0][0] = 1
+        m.assignment[6][7][0] = 7
+        m.assignment[6][8][0] = 6
+
+        m.assignment[7][4][0] = 1
+        m.assignment[7][5][0] = 5
+        m.assignment[7][6][0] = 2
+
+        m.assignment[8][1][0] = 4
+        m.assignment[8][2][0] = 2
+        m.assignment[8][5][0] = 6
+
         m.draw_map()
         m.create_constraint()
         m.update_legal_variable()
@@ -397,6 +453,8 @@ class MainWindow(QMainWindow):
                 for y in range(0,self.length*self.length):
                     box = layout.itemAtPosition(x,y).widget()
                     box.setText(str(m.assignment[x][y][0]))
+        else:
+            print("Pas de solution")
 
         m.draw_map()
 
@@ -414,30 +472,31 @@ class MainWindow(QMainWindow):
 
     #Donner une valuer initiale à la table de sudoku à partir d'un site
     def fill_button_clicked(self):
-        response = requests.get("https://sugoku.herokuapp.com/board?difficulty=easy")
-        grid = response.json()['board']
-        grid_original = [[grid[x][y] for y in range(len(grid[0]))] for x in range(len(grid))]
+        if self.length == 3:
+            response = requests.get("https://sugoku.herokuapp.com/board?difficulty=easy")
+            grid = response.json()['board']
+            grid_original = [[grid[x][y] for y in range(len(grid[0]))] for x in range(len(grid))]
 
-        layout = self.layout
-        m = Map(self.length)
-        m.draw_map()
+            layout = self.layout
+            m = Map(self.length)
+            m.draw_map()
 
-        print(grid_original)
+            print(grid_original)
 
-        for x in range(0,self.length*self.length):
-            for y in range(0,self.length*self.length):
-                box = layout.itemAtPosition(x,y).widget()
-                if grid_original[x][y]:
-                    box.setStyleSheet("color: red;")
-                    m.assignment[x][y][0] = int(grid_original[x][y])
-                else:
-                    m.assignment[x][y][0] = 0
-
-        for x in range(0,self.length*self.length):
-            for y in range(0,self.length*self.length):
-                if (m.assignment[x][y][0] != 0):
+            for x in range(0,self.length*self.length):
+                for y in range(0,self.length*self.length):
                     box = layout.itemAtPosition(x,y).widget()
-                    box.setText(str(m.assignment[x][y][0]))
+                    if grid_original[x][y]:
+                        box.setStyleSheet("color: red;")
+                        m.assignment[x][y][0] = int(grid_original[x][y])
+                    else:
+                        m.assignment[x][y][0] = 0
+
+            for x in range(0,self.length*self.length):
+                for y in range(0,self.length*self.length):
+                    if (m.assignment[x][y][0] != 0):
+                        box = layout.itemAtPosition(x,y).widget()
+                        box.setText(str(m.assignment[x][y][0]))
 
                 
 
