@@ -25,10 +25,10 @@ class Map:
         #Chaque case est défini par sa valeur, le nombre de valeur disponible et la liste des valeurs disponibles
         self.assignment = [[[0, 0, []] for i in range(length*length)] for j in range(length*length)]
         #Pour le moment, l'algorithme utilisé est défini ici
-        #self.algo = "mrv"
+        self.algo = "mrv"
         #self.algo = "degree heuristic"
         #self.algo = "least constraining value"
-        self.algo = "ac3"
+        #self.algo = "ac3"
     
     #Créer un dictionnaire avec pour clé les coordonnées des cases de la grille et en valeur
     #les coordonnées de toutes les cases possédant des contraintes binaires avec la case en clé
@@ -370,13 +370,13 @@ class MainWindow(QMainWindow):
         verticalLayout = QVBoxLayout()
         verticalLayout.setAlignment(PySide6.QtCore.Qt.AlignVCenter)
 
-        text = QLabel()
-        text.setText("Rentrez votre grille de sudoku puis appuyez sur \"Valider\"")
-        font = text.font()
+        self.text = QLabel()
+        self.text.setText("Rentrez votre grille de sudoku puis appuyez sur \"Valider\"")
+        font = self.text.font()
         font.setPointSize(30)
-        text.setFont(font)
-        text.setAlignment(PySide6.QtCore.Qt.AlignHCenter)
-        verticalLayout.addWidget(text)
+        self.text.setFont(font)
+        self.text.setAlignment(PySide6.QtCore.Qt.AlignHCenter)
+        verticalLayout.addWidget(self.text)
 
 
         self.layout = QGridLayout()
@@ -452,8 +452,9 @@ class MainWindow(QMainWindow):
                 for y in range(0,self.length*self.length):
                     box = layout.itemAtPosition(x,y).widget()
                     box.setText(str(m.assignment[x][y][0]))
+            self.text.setText("Solution Trouvée")
         else:
-            print("Pas de solution")
+            self.text.setText("Pas de solution")
 
         m.draw_map()
 
@@ -461,7 +462,7 @@ class MainWindow(QMainWindow):
     #Retire toutes les valeurs du sudoku afin que l'utilisateur puisse rentrer un nouveau sudoku à résoudre
     def clear_button_clicked(self):
         layout = self.layout
-
+        self.text.setText("Rentrez votre grille de sudoku puis appuyez sur \"Valider\"")
         for x in range(0,self.length*self.length):
             for y in range(0,self.length*self.length):
                 box = layout.itemAtPosition(x,y).widget()
