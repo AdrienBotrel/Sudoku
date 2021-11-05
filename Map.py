@@ -25,10 +25,10 @@ class Map:
         #Chaque case est défini par sa valeur, le nombre de valeur disponible et la liste des valeurs disponibles
         self.assignment = [[[0, 0, []] for i in range(length*length)] for j in range(length*length)]
         #Pour le moment, l'algorithme utilisé est défini ici
-        self.algo = "mrv"
+        #self.algo = "mrv"
         #self.algo = "degree heuristic"
         #self.algo = "least constraining value"
-
+        self.algo = "ac3"
     
     #Créer un dictionnaire avec pour clé les coordonnées des cases de la grille et en valeur
     #les coordonnées de toutes les cases possédant des contraintes binaires avec la case en clé
@@ -109,6 +109,7 @@ class Map:
 
     #Boucle de backtracking (comme dans le pseudo code)
     def recursive_backtracking(self):
+        #print(self.assignment)
         if self.test_complete(): return self.assignment
         x, y = self.select_unasigned_variable()
 
@@ -123,6 +124,29 @@ class Map:
                     if result != False:
                         return result
                     self.remove(x,y,value)
+        
+        # Boucle pour l'algorithme AC3
+        elif self.algo == "ac3":
+            for value in self.assignment[x][y][2]:
+                
+                prevVal=self.assignment[x][y][2]
+                self.assignment[x][y][2]=[value]
+                self.assignment[x][y][0] = value
+                prevNb=self.assignment[x][y][1]
+                self.assignment[x][y][1] = 1
+                
+                self.AC3()
+                
+                result = self.recursive_backtracking()
+                if result != False:
+                    return result
+                
+                self.assignment[x][y][0]=0           
+                self.assignment[x][y][1]=prevNb
+                self.assignment[x][y][2]=prevVal 
+                self.update_legal_variable()
+
+               
         else:
             for value in self.domain:
                 if self.test_consistant(x, y, value):
@@ -169,7 +193,7 @@ class Map:
                         if len(self.constraint[key]) > selectedBox[1]:
                             selectedBox = [[x,y], self.assignment[x][y][1]]
 
-        elif self.algo == "least constraining value":
+        elif self.algo == "least constraining value" or self.algo=="ac3":
             #Algorithme de least constraining value
             #selectBox = [coord, legalValuesNumber]
             for x in range(0,self.length*self.length):
@@ -287,6 +311,7 @@ class Map:
 
     ## AC3
     
+    # Algorithme permettant de créer une liste de tous les arcs du sudoku (envisager de le créer une seule fois, self.all_arc=self.create_arc())
     def create_arc(self):
         var=self.constraint.copy()
         m_liste=[]
@@ -295,16 +320,19 @@ class Map:
                 key=[i-1,j-1]
                 arc=var.pop('['+str(key[0])+','+str(key[1])+']')
                 for k in arc:
-                    if (k,key) not in m_liste:
-                        m_liste+=[(key,k)]
+                    m_liste+=[(key,k)]
         return m_liste
     
+    # Algorithme testant si il existe au moins une valeur satisfaisant la contrainte (Xi,Xj)
+    # Si il n'y a pas de y tel que x!=y, alors on renvoie True (la valeur x n'est pas consistente)
     def test_inconsistent_values(self,x,Xj):
         for y in self.assignment[Xj[0]][Xj[1]][2]:
             if x!=y:
                 return False
         return True
     
+    # Algorithme permettant d'enlever les valeurs x du domain de Xi si x n'est pas consistent
+    # Renvoie True si au moins une valeur a été retiré, sinon renvoie False
     def remove_inconsistent_values(self,Xi,Xj):
         removed=False
         for x in self.assignment[Xi[0]][Xi[1]][2]:
@@ -314,8 +342,10 @@ class Map:
                 removed=True
         return removed
     
+    # Algorithme permettant d'actualiser les domaines des différentes cases en fonction des valeurs prises.
     def AC3(self):
         queue=self.create_arc()
+        
         while(len(queue)>0):
             Xi, Xj=queue.pop(0)
             if self.remove_inconsistent_values(Xi,Xj):
