@@ -2,7 +2,8 @@ from random import randrange
 import copy
 import time
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QGridLayout, QLineEdit, QVBoxLayout, QWidget, QPushButton, QLabel, QToolBar, QStatusBar, QWidgetItem, QColorDialog
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QGridLayout, QLineEdit, QVBoxLayout, QWidget, QPushButton, QLabel, QToolBar, QStatusBar, QWidgetItem, QColorDialog, QSpinBox
 from PySide6.QtGui import QPalette, QColor, QScreen, QGuiApplication, QFont, QAction
 import PySide6
 import sys
@@ -370,9 +371,13 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._createMenuBar() # créer une bare de menu
         self.length = 3
+        
+        self.init_screen()
+
+    def init_screen(self):
         self.setWindowTitle("Sudoku")
         max_length = len(str(self.length*self.length))
-        print(max_length)
+        # print("max length : ",max_length)
         verticalLayout = QVBoxLayout()
         verticalLayout.setAlignment(PySide6.QtCore.Qt.AlignVCenter)
 
@@ -404,7 +409,7 @@ class MainWindow(QMainWindow):
         validate_button = QPushButton("Valider")
         validate_button.clicked.connect(self.validate_button_clicked)
         font = validate_button.font()
-        font.setPointSize(30)
+        font.setPointSize(10)
         validate_button.setFont(font)
 
         verticalLayout.addWidget(validate_button)
@@ -412,7 +417,7 @@ class MainWindow(QMainWindow):
         clear_button = QPushButton("Effacer")
         clear_button.clicked.connect(self.clear_button_clicked)
         font = clear_button.font()
-        font.setPointSize(30)
+        font.setPointSize(10)
         clear_button.setFont(font)
 
         verticalLayout.addWidget(clear_button)
@@ -421,7 +426,7 @@ class MainWindow(QMainWindow):
         fill_button = QPushButton("* Remplir table Sudoku depuis Internet *")
         fill_button.clicked.connect(self.fill_button_clicked)
         font = fill_button.font()
-        font.setPointSize(30)
+        font.setPointSize(10)
         fill_button.setFont(font)
 
         verticalLayout.addWidget(fill_button)
@@ -437,6 +442,7 @@ class MainWindow(QMainWindow):
     def validate_button_clicked(self):
         layout = self.layout
         m = Map(self.length)
+        
         m.draw_map()
 
         for x in range(0,self.length*self.length):
@@ -537,6 +543,28 @@ class MainWindow(QMainWindow):
         algoMenu.addAction(mrv_action)
         algoMenu.addAction(degree_action)
         algoMenu.addAction(lcv_action)
+
+        ####    Adding size variable
+        editToolBar = QToolBar("Edit", self)
+        self.addToolBar(editToolBar)
+        fontSizeSpinBox = QSpinBox()
+        fontSizeSpinBox.setFocusPolicy(Qt.NoFocus)
+        editToolBar.addWidget(fontSizeSpinBox)
+        fontSizeSpinBox.setMinimum(2)
+        fontSizeSpinBox.setValue(3)
+        fontSizeSpinBox.valueChanged.connect(self.value_changed)
+        
+
+
+    def value_changed(self, i):
+        # Change the size of the Sudoku
+        self.length = i
+        print("Self.length : ",self.length)
+        self.init_screen()
+        window.showMinimized()
+        window.showMaximized()
+
+        
 
 
     def onAC3ButtonClick(self, s):
